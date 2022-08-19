@@ -46,26 +46,26 @@ const login = async (req, res = response) => {
 
     const { email, password } = req.body;
     try {
-        const usuariodb = await Usuario.findOne({ email: email });
-        if (!usuariodb) {
+        const usuario = await Usuario.findOne({ email: email });
+        if (!usuario) {
             return res.status(404).json({
                 ok: false,
                 msg: 'Email no encontrado'
             });
         }
-        const validaPassword = bcrypt.compareSync(password, usuariodb.password);
+        const validaPassword = bcrypt.compareSync(password, usuario.password);
         if (!validaPassword) {
             return res.status(400).json({
                 ok: false,
                 msg: 'Password no valido'
             });
         }
-        const token = await generaJWT(usuariodb.id);
+        const token = await generaJWT(usuario.id);
 
         res.json({
             ok: true,
             msg: 'login',
-            usuariodb,
+            usuario,
             token
 
         });

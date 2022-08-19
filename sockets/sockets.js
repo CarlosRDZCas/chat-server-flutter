@@ -1,4 +1,6 @@
+const { comprobarJWT } = require('../helpers/jwt');
 const { io } = require('../index');
+const { usuarioConectado, usuarioDesconectado, grabarMensaje } = require('../controllers/socket');
 
 
 
@@ -8,7 +10,29 @@ io.on('connection', client => {
 
 
     console.log('Client connected');
-    client.on('disconnect', () => { console.log('disconnected') });
+
+    const [valid, uid] = comprobarJWT(client.handshake.headers['x-token'])
+    console.log(valid, uid)
+    if (!valid) {
+        return client.disconnect();
+    }
+    usuarioConectado(uid);
+
+    client.join(uid);
+
+    client.on('mensaje-personal', async (payload) => {
+        await grabarMensaje(payload);
+        console.log(payload);
+        io.to(payload.para).emit('mensaje-personal', payload);
+    });
+
+
+
+
+    client.on('disconnect', () => {
+        usuarioDesconectado(uid);
+        console.log('Client disconnected');
+    });
 
 
 
